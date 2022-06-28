@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import "package:flutter/material.dart";
 import 'busStop.dart';
+import 'userLocation.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,17 +35,41 @@ class MyHomePage extends StatelessWidget {
           ),
         ),
         drawer: MyDrawer(),
-        bottomNavigationBar: BottomNavigationBar(
-          items: [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'home'),
-            BottomNavigationBarItem(icon: Icon(Icons.search), label: 'search'),
-            BottomNavigationBarItem(icon: Icon(Icons.map), label: 'map'),
-          ],
-        ),
+        bottomNavigationBar: BottomBar(),
         body: Container(
           child: BusLineDisplay(),
           padding: EdgeInsets.all(10),
         ));
+  }
+}
+
+class BottomBar extends StatefulWidget {
+  BottomBar({Key? key}) : super(key: key);
+
+  @override
+  State<BottomBar> createState() => _BottomBarState();
+}
+
+class _BottomBarState extends State<BottomBar> {
+  int _selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    void _onItemTapped(int index) {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
+
+    return BottomNavigationBar(
+      items: [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'home'),
+        BottomNavigationBarItem(icon: Icon(Icons.search), label: 'search'),
+        BottomNavigationBarItem(icon: Icon(Icons.map), label: 'map'),
+      ],
+      onTap: _onItemTapped,
+      currentIndex: _selectedIndex,
+    );
   }
 }
 

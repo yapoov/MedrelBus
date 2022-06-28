@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:http/retry.dart';
 
 class BusLineDisplay extends StatefulWidget {
   BusLineDisplay({Key? key}) : super(key: key);
@@ -10,36 +13,50 @@ class BusLineDisplay extends StatefulWidget {
 }
 
 class _BusStopState extends State<BusLineDisplay> {
+  bool _tileExpanded = false;
   @override
   Widget build(BuildContext context) {
     final HTTPSservice httpSservice = HTTPSservice();
 
     return Card(
-        shape: BeveledRectangleBorder(borderRadius: BorderRadius.horizontal()),
+        shape: const BeveledRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10))),
         child: FutureBuilder(
           future: httpSservice.getPosts(),
           builder: (context, AsyncSnapshot<BusLine> snapshot) {
             if (snapshot.hasData) {
               BusLine? busLine = snapshot.data;
-              return ListView.separated(
-                itemCount: busLine!.station_list.length,
-                separatorBuilder: (context, index) {
-                  return const Divider(
-                    height: 1,
-                  );
-                },
-                itemBuilder: (context, index) {
-                  BusStation station = busLine.station_list[index];
-                  return ListTile(
-                    title: Text(station!.station_name),
-                    trailing: station.exist_bus
-                        ? Icon(Icons.bus_alert)
-                        : Icon(Icons.circle),
-                  );
-                },
+              return SingleChildScrollView(
+                child: Column(
+                  children: <Widget>[
+                    ExpansionTile(
+                        title: Container(
+                            padding: EdgeInsets.all(5),
+                            child: Text(busLine!.line_name,
+                                style: TextStyle(fontSize: 18))),
+                        expandedAlignment: Alignment.center,
+                        children: <Widget>[
+                          ListView.separated(
+                              shrinkWrap: true,
+                              itemCount: busLine!.station_list.length,
+                              itemBuilder: (context, i) {
+                                return ListTile(
+                                  title: Text(
+                                      busLine!.station_list[i].station_name),
+                                  trailing: busLine!.station_list[i].exist_bus
+                                      ? const Icon(Icons.check)
+                                      : const Icon(Icons.circle_outlined),
+                                );
+                              },
+                              separatorBuilder: (context, i) {
+                                return const Divider();
+                              })
+                        ])
+                  ],
+                ),
               );
             } else {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             }
           },
         ));
