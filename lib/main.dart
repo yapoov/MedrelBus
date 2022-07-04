@@ -2,8 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import "package:flutter/material.dart";
-import 'busStop.dart';
-// import 'userLocation.dart';
+import 'package:location/location.dart';
+import 'bus.dart';
+import 'userLocation.dart';
 import 'SearchPage.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:cupertino_icons/cupertino_icons.dart';
@@ -30,6 +31,7 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    // CurrentLocation().getLoc();
     var home = Scaffold(
       appBar: AppBar(
         title: ListTile(
@@ -49,6 +51,31 @@ class MyHomePage extends StatelessWidget {
         )),
       ),
       drawer: MyDrawer(),
+      body: Column(children: [
+        const Text(
+          'Favorites',
+          style: TextStyle(
+            fontSize: 20,
+          ),
+        ),
+        FutureBuilder(
+          future: CurrentLocation().getLoc(),
+          // initialData: ,
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (snapshot.hasData) {
+              return NearestBusStop(location: snapshot.data);
+            }
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          },
+        ),
+
+        // ListView(
+        //   padding: EdgeInsets.all(10),
+        //   children: [Text('da')],
+        // ),
+      ]),
     );
     return CupertinoTabScaffold(
         tabBar: CupertinoTabBar(items: const [
