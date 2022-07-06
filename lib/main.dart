@@ -1,20 +1,30 @@
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import "package:flutter/material.dart";
 import 'package:location/location.dart';
-import 'bus.dart';
+import 'package:medrel_bus/bus_line_display.dart';
+import 'package:medrel_bus/services/bus_line_data_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'userLocation.dart';
 import 'SearchPage.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:cupertino_icons/cupertino_icons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final SharedPreferences sharedPreferences =
+      await SharedPreferences.getInstance();
+
+  runApp(MyApp(sharedPreferences: sharedPreferences));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final SharedPreferences sharedPreferences;
+  const MyApp({super.key, required this.sharedPreferences});
 
   @override
   Widget build(BuildContext context) {
@@ -23,15 +33,19 @@ class MyApp extends StatelessWidget {
           primaryColor: Colors.redAccent,
           brightness: Brightness.light,
           appBarTheme: AppBarTheme(color: Colors.amberAccent)),
-      home: MyHomePage(),
+      home: MyHomePage(
+        sharedPreferences: sharedPreferences,
+      ),
     );
   }
 }
 
 class MyHomePage extends StatelessWidget {
+  final SharedPreferences sharedPreferences;
+  MyHomePage({required this.sharedPreferences});
+
   @override
   Widget build(BuildContext context) {
-    // CurrentLocation().getLoc();
     var home = Scaffold(
       appBar: AppBar(
         title: ListTile(
@@ -58,23 +72,7 @@ class MyHomePage extends StatelessWidget {
             fontSize: 20,
           ),
         ),
-        FutureBuilder(
-          future: CurrentLocation().getLoc(),
-          // initialData: ,
-          builder: (BuildContext context, AsyncSnapshot snapshot) {
-            if (snapshot.hasData) {
-              return NearestBusStop(location: snapshot.data);
-            }
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          },
-        ),
-
-        // ListView(
-        //   padding: EdgeInsets.all(10),
-        //   children: [Text('da')],
-        // ),
+        BusLineDisplay(busId: '11100171', sharedPreferences: sharedPreferences)
       ]),
     );
     return CupertinoTabScaffold(
