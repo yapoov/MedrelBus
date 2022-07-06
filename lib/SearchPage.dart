@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:getwidget/getwidget.dart';
+import 'bus.dart';
 
 class SearchPage extends StatelessWidget {
   const SearchPage({Key? key}) : super(key: key);
@@ -21,9 +22,40 @@ class SearchBar extends StatefulWidget {
   State<SearchBar> createState() => _SearchBarState();
 }
 
-List list = ['flutter', 'angular', 'node js'];
+List list = [
+  'flutter',
+  'angular',
+  'node js',
+  'aa',
+  'bb',
+  'd',
+  'e',
+  'asdsadasd'
+];
 
 class _SearchBarState extends State<SearchBar> {
+  BusDataHTTP busDataHTTP = BusDataHTTP();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getBusData();
+  }
+
+  getBusData() async {
+    list.clear();
+    await busDataHTTP.getBuslines().then((busList) {
+      busList.forEach((e) async {
+        await e.then((busline) {
+          busline.stationList.forEach((busStop) {
+            list.add(busStop.stationName);
+          });
+        });
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     var SearchBarTop = GFSearchBar(

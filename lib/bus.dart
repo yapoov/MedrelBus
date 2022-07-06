@@ -87,11 +87,30 @@ class _NearestBusStopState extends State<NearestBusStop> {
   _NearestBusStopState({required this.currentLoc});
   BusStop? nearestBusStop;
   var myLoc = Location();
-  BusDataHTTP busLineHTTP = BusDataHTTP();
+  BusDataHTTP busdataHTTP = BusDataHTTP();
   @override
   void initState() {
     super.initState();
     // getNearest();
+    getNearestBusStop();
+  }
+
+  getNearestBusStop() async {
+    await busdataHTTP.getBuslines().then((list) {
+      list.forEach((futureBus) async {
+        await futureBus.then((busLine) {
+          busLine.stationList.forEach((busStop) {
+            if (locDistance(currentLoc, busStop) <
+                locDistance(currentLoc, nearestBusStop)) {
+              setState(() {
+                nearestBusStop = busStop;
+              });
+            }
+          });
+        });
+      });
+    });
+    // busdataHTTP.getAllBusLines()
   }
 
   Future<BusStop> getNearest() async {
@@ -102,15 +121,13 @@ class _NearestBusStopState extends State<NearestBusStop> {
         existBus: false,
         longitude: 0,
         latitude: 0);
-    await busLineHTTP.getAllBusLines();
-    busLineHTTP.allBusLines.forEach((key, value) {
-      value.stationList.forEach((busStop) {
-        if (locDistance(currentLoc, busStop) < locDistance(currentLoc, res)) {
-          res = busStop;
-        }
-      });
+    await busdataHTTP.generateData();
+    busdataHTTP.allBusStops.forEach((key, busStop) {
+      if (locDistance(currentLoc, busStop) < locDistance(currentLoc, res)) {
+        res = busStop;
+      }
     });
-
+    setState(() {});
     return res;
   }
 
@@ -118,18 +135,27 @@ class _NearestBusStopState extends State<NearestBusStop> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        FutureBuilder(
-          future: getNearest(),
-          // initialData: InitialData,
-          builder: (BuildContext context, AsyncSnapshot snapshot) {
-            if (snapshot.hasData) {
-              return DisplayBusStop(busStop: snapshot.data as BusStop);
-            }
-            return const CircularProgressIndicator();
-          },
-        ),
-        Text(
-            "${currentLoc.longitude.toString()}, ${currentLoc.latitude.toString()}"),
+        DisplayBusStop(
+            busStop: nearestBusStop ??
+                BusStop(
+                    stationName: 'Fack',
+                    stationId: '',
+                    stationSeq: 0,
+                    existBus: false,
+                    longitude: 0,
+                    latitude: 0)),
+        // FutureBuilder(
+        //   future: getNearest(),
+        //   // initialData: InitialData,
+        //   builder: (BuildContext context, AsyncSnapshot snapshot) {
+        //     if (snapshot.hasData) {
+        //       return DisplayBusStop(busStop: snapshot.data as BusStop);
+        //     }
+        //     return const CircularProgressIndicator();
+        //   },
+        // ),
+        // Text(
+        //     "${currentLoc.longitude.toString()}, ${currentLoc.latitude.toString()}"),
       ],
     );
   }
@@ -157,7 +183,7 @@ class BusDataHTTP {
   // generateData();
   // }
 
-  getAllBusLines() async {
+  generateData() async {
     List<dynamic> busInfos =
         json.decode(await rootBundle.loadString('lib/busLines.json'));
 
@@ -169,6 +195,23 @@ class BusDataHTTP {
       allBusLines[res.lineId] = res;
       // return res;
     });
+  }
+
+  // getBusLines
+  Future<List<Future<BusLine>>> getBuslines() async {
+    List<dynamic> busInfos =
+        json.decode(await rootBundle.loadString('lib/busLines.json'));
+
+    // print('started');
+
+    var res = busInfos.map((busInfo) async {
+      var res = await getBusLineData(busInfo['bus_id']);
+      // print(res.lineName);
+      allBusLines[res.lineId] = res;
+      return res;
+    }).toList();
+
+    return res;
   }
 
   Future<BusLine> getBusLineData(String busId) async {
@@ -207,42 +250,45 @@ class DisplayBusStop extends StatelessWidget {
     return Card(
       shape: const BeveledRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(10))),
-      child: Column(
-        children: [
-          ExpansionTile(
-              leading: Icon(Icons.airline_stops),
-              title: Text(
-                busStop.stationName,
-                style: const TextStyle(fontSize: 18),
-              ),
-              children: busStop.busLines.map<Widget>((busLine) {
-                return ListTile(
-                  title: Text(busLine.lineName),
-                  onTap: () {
-                    Navigator.of(context)
-                        .push(MaterialPageRoute(builder: (context) {
-                      return Scaffold(
-                          body: SafeArea(
-                        child: ListView.separated(
-                          itemCount: busLine.stationList.length,
-                          separatorBuilder: (BuildContext context, int index) {
-                            return const Divider();
-                          },
-                          itemBuilder: (BuildContext context, int index) {
-                            return ListTile(
-                                title: Text(
-                                    busLine.stationList[index].stationName),
-                                trailing: busLine.stationList[index].existBus
-                                    ? Icon(CupertinoIcons.bus)
-                                    : Icon(Icons.arrow_downward_rounded));
-                          },
-                        ),
-                      ));
-                    }));
-                  },
-                );
-              }).toList())
-        ],
+      child: Expanded(
+        child: Column(
+          children: [
+            ExpansionTile(
+                leading: Icon(Icons.airline_stops),
+                title: Text(
+                  busStop.stationName,
+                  style: const TextStyle(fontSize: 18),
+                ),
+                children: busStop.busLines.map<Widget>((busLine) {
+                  return ListTile(
+                    title: Text(busLine.lineName),
+                    onTap: () {
+                      Navigator.of(context)
+                          .push(MaterialPageRoute(builder: (context) {
+                        return Scaffold(
+                            body: SafeArea(
+                          child: ListView.separated(
+                            itemCount: busLine.stationList.length,
+                            separatorBuilder:
+                                (BuildContext context, int index) {
+                              return const Divider();
+                            },
+                            itemBuilder: (BuildContext context, int index) {
+                              return ListTile(
+                                  title: Text(
+                                      busLine.stationList[index].stationName),
+                                  trailing: busLine.stationList[index].existBus
+                                      ? Icon(CupertinoIcons.bus)
+                                      : Icon(Icons.arrow_downward_rounded));
+                            },
+                          ),
+                        ));
+                      }));
+                    },
+                  );
+                }).toList())
+          ],
+        ),
       ),
     );
   }
