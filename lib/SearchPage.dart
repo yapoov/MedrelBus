@@ -12,6 +12,7 @@ import 'package:medrel_bus/services/bus_route_finder.dart';
 
 import 'package:medrel_bus/services/bus_stop_data_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timelines/timelines.dart';
 
 class SearchPage extends StatelessWidget {
   final SharedPreferences sharedPreferences;
@@ -82,27 +83,27 @@ class _SearchBarState extends State<SearchBar> {
           bottomItem = name;
         });
       }),
-      ElevatedButton(
-          onPressed: () {
-            setState(() {
-              result = busRouteFinder?.SearchRoute(topItem, bottomItem) ?? [];
-            });
-          },
-          child: const Text(
-            'Хайх',
-            style: TextStyle(fontSize: 20),
-          )),
+      ListTile(
+        title: ElevatedButton(
+            onPressed: () {
+              setState(() {
+                result = busRouteFinder?.SearchRoute(topItem, bottomItem) ?? [];
+              });
+            },
+            child: const Text(
+              'Хайх',
+              style: TextStyle(fontSize: 20),
+            )),
+      ),
       //show Results
       Text('Results'),
       Expanded(
           child: ListView(
-              children: result
-                  .map((busRoute) => ListTile(
-                        leading: Text(busRoute.start!.stationName ?? ''),
-                        title: Text(busRoute.bus!.lineName ?? ''),
-                        trailing: Text(busRoute.end!.stationName ?? ''),
-                      ))
-                  .toList()))
+              children: result.map<Widget>((route) {
+        return ListTile(
+          title: Text(route.bus!.lineName!),
+        );
+      }).toList()))
     ]);
   }
 

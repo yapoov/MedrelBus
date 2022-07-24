@@ -52,6 +52,10 @@ class BusRouteFinder {
     busLineDataService.fetchAllEntries().forEach((key, busLines) {
       var startLine = busLines[0];
       var endLine = busLines[1];
+
+      if (startLine.stationList == null || endLine.stationList == null) {
+        return;
+      }
       for (var station in startLine.stationList!) {
         if (toRoutes.containsKey(station)) {
           toRoutes[station]!.addAll([startLine, endLine]);
@@ -73,27 +77,28 @@ class BusRouteFinder {
 
     Queue<BusStopModel> queue = Queue();
     queue.add(start);
-
+    int numOfRoutes = 0;
     while (queue.isNotEmpty) {
       int preNumStops = queue.length;
-
+      numOfRoutes++;
       for (int i = 0; i < preNumStops; i++) {
         var currentStop = queue.removeFirst();
-        if (toRoutes[currentStop] != null) {
-          for (var bus in toRoutes[currentStop]!) {
-            if (!visited.contains(bus)) {
-              visited.add(bus);
-              for (var stop in bus.stationList!) {
-                if (stop == target || stop == oppositeStopMap[target]) {
-                  res.add(BusRoute(
-                    start: currentStop,
-                    bus: bus,
-                    end: stop,
-                  ));
-                  return res;
-                }
-                queue.add(stop);
+
+        for (var bus in toRoutes[currentStop] ?? []) {
+          if (!visited.contains(bus)) {
+            visited.add(bus);
+            for (var stop in bus.stationList!) {
+              if (stop == target || stop == oppositeStopMap[target]) {
+                res.add(BusRoute(
+                  start: currentStop,
+                  bus: bus,
+                  end: stop,
+                ));
+                print('Routes taken:$numOfRoutes');
+
+                return res;
               }
+              queue.add(stop);
             }
           }
         }
