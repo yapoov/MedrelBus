@@ -11,16 +11,7 @@ class UpdateBusLine extends BusLineEvent {
 
   @override
   // TODO: implement props
-  List<Object?> get props => throw UnimplementedError();
-}
-
-class BusLineUpdated extends BusLineEvent {
-  List<BusLineModel> busLineModels;
-
-  BusLineUpdated({required this.busLineModels});
-  @override
-  // TODO: implement props
-  List<Object?> get props => [busLineModels];
+  List<Object?> get props => [busId];
 }
 
 class FetchAllBusLines extends BusLineEvent {

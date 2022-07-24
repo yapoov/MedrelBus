@@ -5,6 +5,8 @@ import 'package:flutter/cupertino.dart';
 import "package:flutter/material.dart";
 import 'package:location/location.dart';
 import 'package:medrel_bus/bus_line_display.dart';
+import 'package:medrel_bus/bus_stop_display.dart';
+import 'package:medrel_bus/map_screen.dart';
 import 'package:medrel_bus/services/bus_line_data_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,11 +16,14 @@ import 'package:getwidget/getwidget.dart';
 import 'package:cupertino_icons/cupertino_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'map_screen.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final SharedPreferences sharedPreferences =
       await SharedPreferences.getInstance();
 
+  // sharedPreferences.clear();
   runApp(MyApp(sharedPreferences: sharedPreferences));
 }
 
@@ -40,13 +45,43 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  final SharedPreferences sharedPreferences;
-  MyHomePage({required this.sharedPreferences});
+class MyHomePage extends StatefulWidget {
+  SharedPreferences sharedPreferences;
+  MyHomePage({Key? key, required this.sharedPreferences}) : super(key: key);
 
   @override
+  State<MyHomePage> createState() =>
+      _MyHomePageState(sharedPreferences: sharedPreferences);
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  SharedPreferences sharedPreferences;
+  _MyHomePageState({required this.sharedPreferences});
+
+  int currentIndex = 0;
+  @override
   Widget build(BuildContext context) {
-    var home = Scaffold(
+    var tabs = [
+      ListView(children: [
+        const Padding(
+          padding: EdgeInsets.all(10.0),
+          child: Text(
+            'Favorites',
+            style: TextStyle(
+              fontSize: 20,
+            ),
+          ),
+        ),
+        BusStopDisplay(
+          busStopId: '000000416',
+          sharedPrefences: sharedPreferences,
+        ),
+        BusLineDisplay(busId: '11100171', sharedPreferences: sharedPreferences)
+      ]),
+      SearchPage(sharedPreferences: sharedPreferences),
+      MapScreen()
+    ];
+    return Scaffold(
       appBar: AppBar(
         title: ListTile(
             title: Row(
@@ -65,34 +100,21 @@ class MyHomePage extends StatelessWidget {
         )),
       ),
       drawer: MyDrawer(),
-      body: Column(children: [
-        const Text(
-          'Favorites',
-          style: TextStyle(
-            fontSize: 20,
-          ),
-        ),
-        BusLineDisplay(busId: '11100171', sharedPreferences: sharedPreferences)
-      ]),
+      body: tabs[currentIndex],
+      bottomNavigationBar: CupertinoTabBar(
+        currentIndex: currentIndex,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'нүүр'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'хайлт'),
+          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'газрын зураг'),
+        ],
+        onTap: (index) {
+          setState(() {
+            currentIndex = index;
+          });
+        },
+      ),
     );
-    return CupertinoTabScaffold(
-        tabBar: CupertinoTabBar(items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'home'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'search'),
-          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'map'),
-        ]),
-        tabBuilder: (context, index) {
-          switch (index) {
-            case 0:
-              return home;
-            case 1:
-              return const SearchPage();
-            case 2:
-              return Container(); //TODO map hiine
-            default:
-              return home;
-          }
-        });
   }
 }
 

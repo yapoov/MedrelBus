@@ -44,6 +44,10 @@ dependencies:
   flutter_bloc: ^8.0.1
   equatable: ^2.0.3
   shared_preferences: ^2.0.15
+  timelines: ^0.1.0
+  dio: ^4.0.6
+  google_maps_flutter: ^2.1.8
+  flutter_polyline_points: ^1.0.0
   # flutter_google_places: ^0.3.0
   # geocoder:
   #   git: https://github.com/aloisdeniel/flutter_geocoder.git

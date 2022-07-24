@@ -57,21 +57,24 @@ class BusLineModel extends Equatable {
     );
   }
 
-  BusLineModel.fromJson(Map<String, dynamic> json)
-      : lineName = json['line_name'] as String,
-        lineId = json['line_id'] as String,
-        stationList = json['station_list'].map<BusStopModel>((station) {
+  factory BusLineModel.fromJson(Map<String, dynamic> json) {
+    // if (json['result_code'] == 001) return BusLineModel();
+
+    return BusLineModel(
+        lineName: json['line_name'] as String,
+        lineId: json['line_id'] as String,
+        stationList: json['station_list'].map<BusStopModel>((station) {
           var busStop = BusStopModel.fromJson(station);
           return busStop;
         }).toList(),
-        isStartDirection = json['is_start'] == 'Y',
-        weekdayInterval = json['weekday_interval'] as int,
-        holidayInterval = json['holiday_interval'] as int,
-        startTimeAtStartPoint = json['start_time_at_start_point'] as String,
-        startTimeAtEndPoint = json['start_time_at_end_point'] as String,
-        endTimeAtStartPoint = json['end_time_at_start_point'] as String,
-        endTimeAtEndPoint = json['end_time_at_end_point'] as String;
-
+        isStartDirection: json['is_start'] == 'Y',
+        weekdayInterval: json['weekday_interval'] as int,
+        holidayInterval: json['holiday_interval'] as int,
+        startTimeAtStartPoint: json['start_time_at_start_point'] as String,
+        startTimeAtEndPoint: json['start_time_at_end_point'] as String,
+        endTimeAtStartPoint: json['end_time_at_start_point'] as String,
+        endTimeAtEndPoint: json['end_time_at_end_point'] as String);
+  }
   Map<String, dynamic> toJson() => {
         'line_name': lineName,
         'line_id': lineId,

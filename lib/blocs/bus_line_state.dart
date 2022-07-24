@@ -21,13 +21,3 @@ class BusLineChanged extends BusLineState {
   // TODO: implement props
   List<Object?> get props => [busLineModels];
 }
-
-class AllBusLines extends Equatable {
-  Map<String, List<BusLineModel>> busLines;
-
-  AllBusLines({required this.busLines});
-
-  @override
-  // TODO: implement props
-  List<Object?> get props => [busLines];
-}
