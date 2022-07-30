@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -61,8 +62,6 @@ class _BusLineDisplayState extends State<BusLineDisplay> {
             var startLine = busLineState.busLineModels[0];
             var endLine = busLineState.busLineModels[1];
             return Card(
-              shape: BeveledRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
               child: ExpansionTile(
                 initiallyExpanded: initialyEpxanded ?? false,
                 title: Padding(
@@ -70,6 +69,7 @@ class _BusLineDisplayState extends State<BusLineDisplay> {
                   child: Text(
                     startLine.lineName!,
                     style: const TextStyle(fontSize: 18),
+                    overflow: TextOverflow.clip,
                   ),
                 ),
                 onExpansionChanged: (changed) {},
@@ -91,9 +91,9 @@ class _BusLineDisplayState extends State<BusLineDisplay> {
                         ),
                         isSelected: isSelected,
                         children: [
-                          BusDirectionToggle('Эхлэх цэг',
+                          busDirectionToggle('Эхлэх цэг',
                               '${startLine.startTimeAtStartPoint}~${startLine.endTimeAtStartPoint}'),
-                          BusDirectionToggle('Эцсийн цэг',
+                          busDirectionToggle('Эцсийн цэг',
                               '${endLine.startTimeAtEndPoint}~${endLine.endTimeAtEndPoint}')
                         ],
                         onPressed: (int index) {
@@ -108,7 +108,7 @@ class _BusLineDisplayState extends State<BusLineDisplay> {
                     }),
                   ),
                   Container(
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(10),
                     child: Text(
                         'Автобус хоорондын зай: ${DateTime.now().weekday <= 5 ? startLine.weekdayInterval : startLine.holidayInterval} мин'),
                   ),
@@ -118,11 +118,11 @@ class _BusLineDisplayState extends State<BusLineDisplay> {
                     thickness: 2,
                   ),
                   ExpandableContainer(
-                    expandedHeight: 300,
+                    expandedHeight: 400,
                     expanded: true,
                     child: isSelected[0]
-                        ? DisplayStopsTimeLine(startLine)
-                        : DisplayStopsTimeLine(endLine),
+                        ? displayStopsTimeLine(startLine)
+                        : displayStopsTimeLine(endLine),
                   ),
                 ],
               ),
@@ -140,7 +140,7 @@ class _BusLineDisplayState extends State<BusLineDisplay> {
     );
   }
 
-  Padding BusDirectionToggle(String text, String subTitle) {
+  Padding busDirectionToggle(String text, String subTitle) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 0.0),
       child: ListTile(
@@ -162,7 +162,7 @@ class _BusLineDisplayState extends State<BusLineDisplay> {
     );
   }
 
-  DisplayStopsTimeLine(BusLineModel busLine) {
+  displayStopsTimeLine(BusLineModel busLine) {
     return Timeline.tileBuilder(
         controller: TrackingScrollController(),
         theme: TimelineThemeData(color: Colors.grey),
@@ -174,7 +174,7 @@ class _BusLineDisplayState extends State<BusLineDisplay> {
               if (busLine.stationList![index].existBus!) {
                 return Indicator.outlined(
                   size: 15,
-                  child: Icon(
+                  child: const Icon(
                     CupertinoIcons.bus,
                     size: 20,
                   ),
@@ -204,7 +204,7 @@ class _BusLineDisplayState extends State<BusLineDisplay> {
             itemCount: busLine.stationList!.length));
   }
 
-  ListView DisplayStops(BusLineModel startLine) {
+  ListView displayStops(BusLineModel startLine) {
     return ListView.separated(
       itemCount: startLine.stationList!.length,
       separatorBuilder: (BuildContext context, int index) {
@@ -240,14 +240,11 @@ class ExpandableContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     return AnimatedContainer(
-      duration: Duration(microseconds: 500),
+      duration: const Duration(microseconds: 500),
       curve: Curves.bounceInOut,
       width: screenWidth,
-      height: expanded ? expandedHeight : collapsedHeight,
-      child: Container(
-        child: child,
-        // decoration: BoxDecoration(border: Border.all(width: 1)),
-      ),
+      height: expandedHeight,
+      child: child,
     );
   }
 }

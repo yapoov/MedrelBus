@@ -45,58 +45,54 @@ class _BusStopDisplayState extends State<BusStopDisplay> {
           if (busStopState.busStopModel.stationId != null) {
             BusStopModel busStopModel = busStopState.busStopModel;
             return Card(
-                shape: BeveledRectangleBorder(
-                    borderRadius: BorderRadius.circular(20)),
                 child: ExpansionTile(
-                  title: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Text(
-                      busStopModel.stationName!,
-                      style: const TextStyle(fontSize: 18),
-                    ),
-                  ),
-                  onExpansionChanged: (changed) {},
-                  children: [
-                    const Divider(
-                      endIndent: 10,
-                      indent: 10,
-                      thickness: 2,
-                    ),
-                    ExpandableContainer(
-                      expanded: true,
-                      expandedHeight: 300,
-                      child: ListView.separated(
-                        itemCount: BusStopDataService(
-                                sharedPreferences: sharedPrefences)
+              title: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Text(
+                  busStopModel.stationName!,
+                  style: const TextStyle(fontSize: 18),
+                ),
+              ),
+              onExpansionChanged: (changed) {},
+              children: [
+                const Divider(
+                  endIndent: 10,
+                  indent: 10,
+                  thickness: 2,
+                ),
+                ExpandableContainer(
+                  child: ListView.separated(
+                    itemCount:
+                        BusStopDataService(sharedPreferences: sharedPrefences)
                             .getBusStopRoutes(busStopModel.stationId!)
                             .length,
-                        separatorBuilder: (BuildContext context, int index) {
-                          return const Divider();
-                        },
-                        itemBuilder: (BuildContext context, int index) {
-                          var busLine = BusStopDataService(
-                                  sharedPreferences: sharedPrefences)
+                    separatorBuilder: (BuildContext context, int index) {
+                      return const Divider();
+                    },
+                    itemBuilder: (BuildContext context, int index) {
+                      var busLine =
+                          BusStopDataService(sharedPreferences: sharedPrefences)
                               .getBusStopRoutes(busStopModel.stationId!)[index];
 
-                          return ListTile(
-                            title: Text(busLine.lineName!),
-                            onTap: () {
-                              Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (context) {
-                                return SafeArea(
-                                  child: BusLineDisplay(
-                                      initialyExpanded: true,
-                                      sharedPreferences: sharedPrefences,
-                                      busId: busLine.lineId!),
-                                );
-                              }));
-                            },
-                          );
+                      return ListTile(
+                        title: Text(busLine.lineName!),
+                        onTap: () {
+                          Navigator.of(context)
+                              .push(MaterialPageRoute(builder: (context) {
+                            return SafeArea(
+                              child: BusLineDisplay(
+                                  initialyExpanded: true,
+                                  sharedPreferences: sharedPrefences,
+                                  busId: busLine.lineId!),
+                            );
+                          }));
                         },
-                      ),
-                    )
-                  ],
-                ));
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ));
           }
           return const Card(
               child: ListTile(

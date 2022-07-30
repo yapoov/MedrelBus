@@ -94,7 +94,6 @@ class BusRouteFinder {
                   bus: bus,
                   end: stop,
                 ));
-                print('Routes taken:$numOfRoutes');
 
                 return res;
               }
@@ -104,61 +103,6 @@ class BusRouteFinder {
         }
       }
     }
-
     return [];
   }
-
-  // TODO fix:
-  // List<MapEntry<BusLineModel, BusStopModel>> findRoute(
-  //     BusStopModel origin, BusStopModel target) {
-  //   Map<BusStopModel, List<BusLineModel>> toRoutes =
-  //       <BusStopModel, List<BusLineModel>>{};
-
-  //   busLineDataService.fetchAllEntries().forEach((key, buslines) {
-  //     for (var busline in buslines) {
-  //       for (var station in busline.stationList!) {
-  //         if (toRoutes.containsKey(station)) {
-  //           toRoutes[station]!.add(busline);
-  //         } else {
-  //           toRoutes[station] = [busline];
-  //         }
-  //       }
-  //     }
-  //   });
-  //   Queue<MapEntry<BusStopModel, List<MapEntry<BusLineModel, BusStopModel>>>>
-  //       queue = Queue();
-  //   queue.add(MapEntry(origin, []));
-
-  //   List<MapEntry<BusLineModel, BusStopModel>> res = [];
-  //   Set<BusLineModel> visited = <BusLineModel>{};
-
-  //   //breadth first search
-  //   while (queue.isNotEmpty) {
-  //     int preNumStops = queue.length;
-  //     // print(queue.length);
-  //     for (int i = 0; i < preNumStops; i++) {
-  //       var currentRouteAndStop = queue.removeFirst();
-  //       if (toRoutes[currentRouteAndStop.key] != null) {
-  //         for (var bus in toRoutes[currentRouteAndStop.key]!) {
-  //           if (!visited.contains(bus)) {
-  //             visited.add(bus);
-
-  //             for (var stop in bus.stationList!) {
-  //               if (stop.stationName == target.stationName) {
-  //                 return currentRouteAndStop.value;
-  //               }
-
-  //               var routes = currentRouteAndStop.value;
-  //               routes.add(MapEntry(bus, currentRouteAndStop.key));
-  //               queue.add(MapEntry(currentRouteAndStop.key, routes));
-  //             }
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
-
-  //   return res;
-  //   // var originRoutes = busStopDataService.getBusStopRoutes(origin.stationId!);
-  // }
 }

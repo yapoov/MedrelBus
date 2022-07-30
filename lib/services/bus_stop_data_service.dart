@@ -43,6 +43,7 @@ class BusStopDataService {
     return result;
   }
 
+  //Nootoi
   Future<bool> updateEntries() async {
     bool result = true;
     return await busLineDataService.updateEnries().then((res) {

@@ -3,10 +3,13 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import "package:flutter/material.dart";
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:location/location.dart';
+import 'package:medrel_bus/blocs/busStopBlocs/bus_stop_bloc.dart';
 import 'package:medrel_bus/bus_line_display.dart';
 import 'package:medrel_bus/bus_stop_display.dart';
 import 'package:medrel_bus/map_screen.dart';
+import 'package:medrel_bus/nearest_stop.dart';
 import 'package:medrel_bus/services/bus_line_data_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -37,7 +40,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
           primaryColor: Colors.redAccent,
           brightness: Brightness.light,
-          appBarTheme: AppBarTheme(color: Colors.amberAccent)),
+          appBarTheme: AppBarTheme(color: Color.fromARGB(255, 254, 144, 0))),
       home: MyHomePage(
         sharedPreferences: sharedPreferences,
       ),
@@ -66,17 +69,16 @@ class _MyHomePageState extends State<MyHomePage> {
         const Padding(
           padding: EdgeInsets.all(10.0),
           child: Text(
-            'Favorites',
+            'Ойрхон буудал',
             style: TextStyle(
               fontSize: 20,
             ),
           ),
         ),
-        BusStopDisplay(
-          busStopId: '000000416',
-          sharedPrefences: sharedPreferences,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: NearestStop(sharedPreferences: sharedPreferences),
         ),
-        BusLineDisplay(busId: '11100171', sharedPreferences: sharedPreferences)
       ]),
       SearchPage(sharedPreferences: sharedPreferences),
       MapScreen()

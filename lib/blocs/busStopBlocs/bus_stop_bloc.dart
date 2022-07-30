@@ -9,6 +9,8 @@ import 'package:medrel_bus/services/bus_stop_data_service.dart';
 
 import 'dart:math' as Math;
 
+import 'package:medrel_bus/userLocation.dart';
+
 class BusStopBloc extends Bloc<BusStopEvent, BusStopState> {
   BusStopDataService busStopDataService;
 
@@ -30,16 +32,20 @@ class BusStopBloc extends Bloc<BusStopEvent, BusStopState> {
   }
 
   _OnNearestBusStopRequested(
-      GetNearestBusStopEvent event, Emitter<BusStopState> emit) {
+      GetNearestBusStopEvent event, Emitter<BusStopState> emit) async {
     var res = BusStopModel();
-    busStopDataService.fetchAllEntries().forEach((id, model) {
-      if (latlongDistance(event.currentLoc,
-              LatLng(model.latitude ?? 0, model.longitude ?? 0)) <
-          latlongDistance(event.currentLoc,
-              LatLng(res.latitude ?? 0, res.longitude ?? 0))) {
-        res = model;
-      }
-    });
+
+    var loc = await CurrentLocation().getLoc();
+    if (loc != null) {
+      busStopDataService.fetchAllEntries().forEach((id, model) {
+        if (latlongDistance(LatLng(loc.latitude!, loc.longitude!),
+                LatLng(model.latitude ?? 0, model.longitude ?? 0)) <
+            latlongDistance(LatLng(loc.latitude!, loc.longitude!),
+                LatLng(res.latitude ?? 0, res.longitude ?? 0))) {
+          res = model;
+        }
+      });
+    }
     return emit(BusStopUpdated(busStopModel: res));
   }
 

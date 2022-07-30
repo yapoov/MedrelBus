@@ -13,12 +13,8 @@ class UpdateBusStopEvent extends BusStopEvent {
 }
 
 class GetNearestBusStopEvent extends BusStopEvent {
-  final LatLng currentLoc;
-
-  GetNearestBusStopEvent({required this.currentLoc});
-
   @override
-  List<Object?> get props => [currentLoc];
+  List<Object?> get props => [];
 }
 
 class GetBusStopEvent extends BusStopEvent {

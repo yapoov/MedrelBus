@@ -41,15 +41,21 @@ class SearchBar extends StatefulWidget {
       _SearchBarState(sharedPreferences: sharedPreferences);
 }
 
-class _SearchBarState extends State<SearchBar> {
+class _SearchBarState extends State<SearchBar> with TickerProviderStateMixin {
   SharedPreferences sharedPreferences;
   List<BusStopModel> busStops = [];
+
+  List<BusLineModel> busLines = [];
+
+  int currentTabIndex = 0;
   _SearchBarState({required this.sharedPreferences});
 
   BusRouteFinder? busRouteFinder;
+
+  TabController? _tabController;
   @override
   void initState() {
-    // TODO: implement initState
+    _tabController = TabController(length: 3, vsync: this);
 
     busRouteFinder = BusRouteFinder(sharedPreferences);
     super.initState();
@@ -61,7 +67,16 @@ class _SearchBarState extends State<SearchBar> {
         .fetchAllEntries()
         .forEach((key, value) {
       setState(() {
-        if (value != null) busStops.add(value);
+        busStops.add(value);
+      });
+    });
+
+    BusLineDataService(sharedPreferences: await SharedPreferences.getInstance())
+        .fetchAllEntries()
+        .forEach((key, value) {
+      setState(() {
+        busLines.add(value[0]);
+        // busLines.add(value[1]);
       });
     });
   }
@@ -72,13 +87,13 @@ class _SearchBarState extends State<SearchBar> {
   List<BusRoute> result = [];
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      SearchBar(topItem.stationName ?? 'Хаанаас', (name) {
+    var routeSearch = Column(children: [
+      BusStopSearchBar(topItem.stationName ?? 'хаанаас', (name) {
         setState(() {
           topItem = name;
         });
       }),
-      SearchBar(bottomItem.stationName ?? 'Хаашаа', (name) {
+      BusStopSearchBar(bottomItem.stationName ?? 'хаашаа', (name) {
         setState(() {
           bottomItem = name;
         });
@@ -95,8 +110,6 @@ class _SearchBarState extends State<SearchBar> {
               style: TextStyle(fontSize: 20),
             )),
       ),
-      //show Results
-      Text('Results'),
       Expanded(
           child: ListView(
               children: result.map<Widget>((route) {
@@ -105,9 +118,153 @@ class _SearchBarState extends State<SearchBar> {
         );
       }).toList()))
     ]);
+
+    var stationSearch = Column(
+      children: [
+        StopSearchBar('буудал хайх', (stop) {
+          setState(() {
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+              return Scaffold(
+                body: SafeArea(
+                  child: BusStopDisplay(
+                    busStopId: stop.stationId!,
+                    sharedPrefences: sharedPreferences,
+                  ),
+                ),
+              );
+            }));
+          });
+        }),
+      ],
+    );
+
+    var busSearch = Column(
+      children: [
+        BusLineSearchBar('чиглэл хайх', (line) {
+          setState(() {
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+              return Scaffold(
+                body: SafeArea(
+                  child: BusLineDisplay(
+                    initialyExpanded: true,
+                    busId: line.lineId!,
+                    sharedPreferences: sharedPreferences,
+                  ),
+                ),
+              );
+            }));
+          });
+        }),
+      ],
+    );
+    return Container(
+      child: Column(
+        children: [
+          TabBar(
+              labelColor: Colors.black,
+              indicatorSize: TabBarIndicatorSize.label,
+              labelPadding: const EdgeInsets.only(left: 10, right: 10),
+              controller: _tabController,
+              onTap: (index) {
+                setState(() {
+                  currentTabIndex = index;
+                });
+              },
+              tabs: const [
+                Tab(text: "Маршрyт"),
+                Tab(text: "Буудал"),
+                Tab(text: "Чиглэл"),
+              ]),
+          Flexible(
+            child: TabBarView(controller: _tabController, children: [
+              routeSearch,
+              stationSearch,
+              busSearch,
+            ]),
+          )
+        ],
+      ),
+    );
   }
 
-  SearchBar(String label, Function(BusStopModel)? callback) {
+  BusLineSearchBar(String label, Function(BusLineModel)? callback) {
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: GFSearchBar(
+        overlaySearchListHeight: 500,
+        searchBoxInputDecoration: InputDecoration(
+            prefixIcon: Icon(CupertinoIcons.search),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+
+            // labelText: currentLabel
+            label: Text(label)),
+        searchList: busLines,
+        overlaySearchListItemBuilder: (dynamic item) => Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 10),
+            child: Text(
+              (item as BusLineModel).lineName!,
+              overflow: TextOverflow.fade,
+            ),
+          ),
+        ),
+        searchQueryBuilder: (query, list) => list.where((item) {
+          query = query.toLowerCase();
+          query = query.replaceAllMapped(
+              RegExp(r'\w+'), (match) => LatinToCyrillic(match[0]!));
+
+          var hashMap = {'о': 'ө', 'у': 'ү'};
+          return item.toString().toLowerCase().contains(query) ||
+              item.toString().toLowerCase().contains(query.replaceAllMapped(
+                  RegExp(r'о|у'), (match) => hashMap[match[0]]!));
+        }).toList(),
+        onItemSelected: (dynamic item) {
+          if (item != null) callback!((item as BusLineModel));
+        },
+        noItemsFoundWidget: Container(),
+      ),
+    );
+  }
+
+  StopSearchBar(String label, Function(BusStopModel)? callback) {
+    String currentLabel = label;
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: GFSearchBar(
+        overlaySearchListHeight: 500,
+        searchBoxInputDecoration: InputDecoration(
+            prefixIcon: Icon(CupertinoIcons.search),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+            // labelText: currentLabel
+            label: Text(currentLabel)),
+        searchList: busStops,
+        overlaySearchListItemBuilder: (dynamic item) => ListTile(
+          title: Text((item as BusStopModel).stationName!),
+        ),
+        searchQueryBuilder: (query, list) => list.where((item) {
+          query = query.toLowerCase();
+          query = query.replaceAllMapped(
+              RegExp(r'\w+'), (match) => LatinToCyrillic(match[0]!));
+
+          var hashMap = {'о': 'ө', 'у': 'ү'};
+          return item.toString().toLowerCase().contains(query) ||
+              item.toString().toLowerCase().contains(query.replaceAllMapped(
+                  RegExp(r'о|у'), (match) => hashMap[match[0]]!));
+        }).toList(),
+        onItemSelected: (dynamic item) {
+          if (item != null) callback!((item as BusStopModel));
+        },
+        noItemsFoundWidget: Container(),
+      ),
+    );
+  }
+
+  BusStopSearchBar(String label, Function(BusStopModel)? callback) {
     String currentLabel = label;
 
     return GestureDetector(
@@ -118,7 +275,7 @@ class _SearchBarState extends State<SearchBar> {
         searchBoxInputDecoration: InputDecoration(
             prefixIcon: Icon(CupertinoIcons.search),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
-            suffixIcon: Icon(CupertinoIcons.location),
+            // suffixIcon: Icon(CupertinoIcons.location),
             // labelText: currentLabel
             label: Text(currentLabel)),
         searchList: busStops,
@@ -187,10 +344,5 @@ class _SearchBarState extends State<SearchBar> {
         RegExp(r'\w'), (match) => hashMap[match[0]] ?? '');
   }
 }
-
-
-
-
-
 
 // type '(String, List<BusStopModel>) => List<BusStopModel>' is not a subtype of type '(String, List<BusStopModel?>) => List<BusStopModel?>'
